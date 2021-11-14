@@ -24,6 +24,7 @@ static unsigned int presses[4] = {0,0,0,0};     // Store the number of button pr
 static const char device_name[] = "Fase1";
 
 static irq_handler_t fase1_irq_handler (unsigned int irq, void *dev_id, struct pt_regs *regs);
+static void ledAction(int ledN, bool onoff, int button);
 
 
 // Registrem els GPIOss a fer servir
@@ -69,7 +70,7 @@ int register_device(void) {
     gpio_set_debounce(gpioButton3, 300);
     gpio_export(gpioButton3, false);
 
-    
+
     // Check dels mappings dels IRQs
     irqNumber0 = gpio_to_irq(gpioButton0);
     printk(KERN_INFO "Fase1: El botó 0 esta mapejat al IRQ: %d\n", irqNumber0);
@@ -132,39 +133,32 @@ void unregister_device(void) {
 
 
 static irq_handler_t fase1_irq_handler(unsigned int irq, void *dev_id, struct pt_regs *regs){
-    switch (irq) {
-        case irqNumber0:
+    if (irq == irqNumber0) {
             ledAction(0, true, 0);
             //Execute script
-            break;
-        case irqNumber1:
+    } else if (irq == irqNumber1) {
             ledAction(0, false, 1);
             //Execute script
-            break;
-        case irqNumber2:
+    } else if (irq == irqNumber2) {
             ledAction(1, true, 2);
-            //Execute script            
-            break;            
-        case irqNumber3:
+            //Execute script
+    } else if (irq == irqNumber3) {
             ledAction(1, false, 3);
-            //Execute script            
-            break;            
+            //Execute script
     }
     return (irq_handler_t) IRQ_HANDLED;
 }
 
-static ledAction(int ledN, bool onoff, int button) {
+static void ledAction(int ledN, bool onoff, int button) {
     if (ledN == 0) {
         led0 = onoff;
-        gpio_set_value(gpioLED0, led0);         
+        gpio_set_value(gpioLED0, led0);
     } else if (ledN == 1) {
         led1 = onoff;
-        gpio_set_value(gpioLED1, led1); 
+        gpio_set_value(gpioLED1, led1);
     }
     printk(KERN_INFO "Fase1: Interrupt! Button %d pressed\n", button);
-    presses[burron]++;  // Global counter, will be outputted when the module is unloaded
-
-    return 0;
+    presses[button]++;  // Global counter, will be outputted when the module is unloaded
 }
 
 
