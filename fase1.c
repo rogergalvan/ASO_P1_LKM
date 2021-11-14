@@ -1,3 +1,7 @@
+// ASO : P1F1 - LKM
+// https://github.com/rogergalvan/ASO_P1_LKM
+// By: Roger Galvan (roger.galvan)
+// 14/11/2021
 #include <linux/init.h>
 #include <linux/module.h>
 #include <linux/fs.h>
@@ -20,8 +24,17 @@ static unsigned int irqNumber2;                 // Used to share the IRQ number 
 static unsigned int irqNumber3;                 // Used to share the IRQ number for button3
 static bool led0 = 0;                           // Is the LED0 on or off?
 static bool led1 = 0;                           // Is the LED1 on or off?
+static int fuck_warnings;
 static unsigned int presses[4] = {0,0,0,0};     // Store the number of button pressesf
 static const char device_name[] = "Fase1";
+static char* envp[] = {"HOME=/", NULL};
+static char* argv0[] = {"/home/pi/Desktop/script0.sh", NULL};
+static char* argv1[] = {"/home/pi/Desktop/script1.sh", NULL};
+static char* argv2[] = {"/home/pi/Desktop/script2.sh", NULL};
+static char* argv3[] = {"/home/pi/Desktop/script3.sh", NULL};
+
+
+
 
 static irq_handler_t fase1_irq_handler (unsigned int irq, void *dev_id, struct pt_regs *regs);
 static void ledAction(int ledN, bool onoff, int button);
@@ -81,20 +94,19 @@ int register_device(void) {
     irqNumber3 = gpio_to_irq(gpioButton3);
     printk(KERN_INFO "Fase3: El botó 3 esta mapejat al IRQ: %d\n", irqNumber3);
 
-
-    request_irq(irqNumber0,
+    fuck_warnings = request_irq(irqNumber0,
                         (irq_handler_t) fase1_irq_handler,
                         IRQF_TRIGGER_RISING, "fase1_irq_handler0", NULL);
 
-    request_irq(irqNumber1,
+    fuck_warnings = request_irq(irqNumber1,
                         (irq_handler_t) fase1_irq_handler,
                         IRQF_TRIGGER_RISING, "fase1_irq_handler1", NULL);
 
-    request_irq(irqNumber2,
+    fuck_warnings = request_irq(irqNumber2,
                         (irq_handler_t) fase1_irq_handler,
                         IRQF_TRIGGER_RISING, "fase1_irq_handler2", NULL);
 
-    request_irq(irqNumber3,
+    fuck_warnings = request_irq(irqNumber3,
                         (irq_handler_t) fase1_irq_handler,
                         IRQF_TRIGGER_RISING, "fase1_irq_handler3", NULL);
 
@@ -136,15 +148,19 @@ static irq_handler_t fase1_irq_handler(unsigned int irq, void *dev_id, struct pt
     if (irq == irqNumber0) {
             ledAction(0, true, 0);
             //Execute script
+            call_usermodehelper(argv0[0], argv0, envp, UMH_NO_WAIT);
     } else if (irq == irqNumber1) {
             ledAction(0, false, 1);
             //Execute script
+            call_usermodehelper(argv1[0], argv1, envp, UMH_NO_WAIT);
     } else if (irq == irqNumber2) {
             ledAction(1, true, 2);
             //Execute script
+            call_usermodehelper(argv2[0], argv2, envp, UMH_NO_WAIT);
     } else if (irq == irqNumber3) {
             ledAction(1, false, 3);
             //Execute script
+            call_usermodehelper(argv3[0], argv3, envp, UMH_NO_WAIT);
     }
     return (irq_handler_t) IRQ_HANDLED;
 }
